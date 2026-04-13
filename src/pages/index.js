@@ -94,7 +94,10 @@ const Dashboard = () => {
         <DashboardLayout>
             <Header>
                 <Title>SuperSay Metrics Dashboard</Title>
-                <RefreshButton onClick={handleRefresh} disabled={loading}>Refresh</RefreshButton>
+                <HeaderActions>
+                    <SakshiLink href="/sakshi">Sakshi Beta →</SakshiLink>
+                    <RefreshButton onClick={handleRefresh} disabled={loading}>Refresh</RefreshButton>
+                </HeaderActions>
             </Header>
             
             <StatGrid>
@@ -131,6 +134,8 @@ const Dashboard = () => {
 // Define Styled Components (using your existing Stitches config/tokens)
 const DashboardLayout = styled('main', { padding: '40px', minHeight: '100vh', background: '$cardBackground', color: '$primary' });
 const Header = styled('header', { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' });
+const HeaderActions = styled('div', { display: 'flex', gap: '12px', alignItems: 'center' });
+const SakshiLink = styled('a', { color: '$cyan', fontSize: '14px', textDecoration: 'none', padding: '10px 16px', border: '1px solid $cyan', borderRadius: '$borderRadius', '&:hover': { background: 'rgba(128, 255, 234, 0.1)' } });
 const Title = styled('h1', { color: '$primary', fontSize: '36px' });
 const RefreshButton = styled('button', { 
     background: '$navBackground',
