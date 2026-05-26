@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Test artifacts
+coverage/
+.nyc_output/
+reports/mutation/
+.stryker-tmp/
+pnpm-workspace.yaml
+
