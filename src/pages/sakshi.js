@@ -15,8 +15,10 @@ import {
 import MetricCard from '../components/MetricCard';
 import UserTable from '../components/UserTable';
 
-const SUMMARY_URL = 'https://www.himudigonda.me/api/sakshi-beta/summary';
-const DAILY_URL = 'https://www.himudigonda.me/api/sakshi-beta/daily-summary';
+// No "www." — that host 308-redirects to the bare domain.
+const SUMMARY_URL = 'https://himudigonda.me/api/sakshi-beta/summary';
+const DAILY_URL = 'https://himudigonda.me/api/sakshi-beta/daily-summary';
+const USAGE_URL = 'https://himudigonda.me/api/sakshi-beta/usage-summary';
 
 function daysSince(isoDate) {
   if (!isoDate) return null;
@@ -27,6 +29,7 @@ function daysSince(isoDate) {
 const SakshiDashboard = () => {
   const [summary, setSummary] = useState(null);
   const [dailyData, setDailyData] = useState([]);
+  const [usageData, setUsageData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -34,12 +37,14 @@ const SakshiDashboard = () => {
     setLoading(true);
     setError(null);
     try {
-      const [summaryRes, dailyRes] = await Promise.all([
+      const [summaryRes, dailyRes, usageRes] = await Promise.all([
         axios.get(SUMMARY_URL),
         axios.get(DAILY_URL),
+        axios.get(USAGE_URL).catch(() => ({ data: null })),
       ]);
       setSummary(summaryRes.data);
       setDailyData(dailyRes.data);
+      setUsageData(usageRes.data);
     } catch (e) {
       console.error('Failed to fetch Sakshi data:', e);
       setError('Could not load data. Is himudigonda.me running?');
@@ -97,6 +102,32 @@ const SakshiDashboard = () => {
         <MetricCard title="Trials Expired" value={summary.totalExpired} accentColor="#ff6b6b" />
       </StatGrid>
 
+      {/* Engagement Metrics */}
+      {usageData && usageData.aggregate && (
+        <StatGrid>
+          <MetricCard
+            title="Total Messages"
+            value={usageData.aggregate.total_messages_sent}
+            accentColor="$cyan"
+          />
+          <MetricCard
+            title="Total Tokens Generated"
+            value={(usageData.aggregate.total_tokens_generated || 0).toLocaleString()}
+            accentColor="$purple"
+          />
+          <MetricCard
+            title="Screenshots Transcribed"
+            value={usageData.aggregate.total_screenshots_transcribed}
+            accentColor="$orange"
+          />
+          <MetricCard
+            title="Avg Daily Active (min)"
+            value={usageData.aggregate.avg_daily_active_minutes}
+            accentColor="#80ffea"
+          />
+        </StatGrid>
+      )}
+
       {/* Daily Signups Chart */}
       <ChartSection>
         <ChartTitle>Daily Signups (last 30 days)</ChartTitle>
@@ -137,7 +168,16 @@ const SakshiDashboard = () => {
       <SectionHeader>
         <ChartTitle>Beta Users ({summary.totalUsers})</ChartTitle>
       </SectionHeader>
-      <UserTable users={summary.users} />
+      {usageData && usageData.per_device ? (
+        <UserTable
+          users={summary.users}
+          usageByDevice={Object.fromEntries(
+            usageData.per_device.map((u) => [u.device_id, u])
+          )}
+        />
+      ) : (
+        <UserTable users={summary.users} />
+      )}
 
       {/* Raw JSON (debug) */}
       <RawDataSection>

@@ -4,8 +4,11 @@ import axios from 'axios';
 // All endpoints are public, cacheable, never expose PII (the server-side
 // migration's RLS keeps the user list out of `anon` reads).
 
+// No "www." — that host 308-redirects to the bare domain (Vercel's
+// canonical production domain config), adding a needless round-trip to
+// every fetch here.
 const BASE = process.env.NEXT_PUBLIC_SUPERSAY_API_BASE
-  || 'https://www.himudigonda.me/api/supersay';
+  || 'https://himudigonda.me/api/supersay';
 
 export async function getOverview() {
   const { data } = await axios.get(`${BASE}/metrics/overview`);

@@ -35,7 +35,7 @@ describe('individual fetchers', () => {
     const api = await freshClient();
     const r = await api.getOverview();
     expect(axios.get).toHaveBeenCalledWith(
-      'https://www.himudigonda.me/api/supersay/metrics/overview'
+      'https://himudigonda.me/api/supersay/metrics/overview'
     );
     expect(r).toEqual({ users_total: 5 });
   });
@@ -45,7 +45,7 @@ describe('individual fetchers', () => {
     const api = await freshClient();
     await api.getDaily(30);
     expect(axios.get).toHaveBeenCalledWith(
-      'https://www.himudigonda.me/api/supersay/metrics/daily',
+      'https://himudigonda.me/api/supersay/metrics/daily',
       { params: { days: 30 } }
     );
   });
@@ -62,7 +62,7 @@ describe('individual fetchers', () => {
     const api = await freshClient();
     await api.getVoices();
     expect(axios.get).toHaveBeenCalledWith(
-      'https://www.himudigonda.me/api/supersay/metrics/voices'
+      'https://himudigonda.me/api/supersay/metrics/voices'
     );
   });
 
@@ -71,7 +71,7 @@ describe('individual fetchers', () => {
     const api = await freshClient();
     await api.getRetention(8);
     expect(axios.get).toHaveBeenCalledWith(
-      'https://www.himudigonda.me/api/supersay/metrics/retention',
+      'https://himudigonda.me/api/supersay/metrics/retention',
       { params: { weeks: 8 } }
     );
   });
@@ -88,7 +88,7 @@ describe('individual fetchers', () => {
     const api = await freshClient();
     await api.getAudiobookFunnel();
     expect(axios.get).toHaveBeenCalledWith(
-      'https://www.himudigonda.me/api/supersay/metrics/audiobook'
+      'https://himudigonda.me/api/supersay/metrics/audiobook'
     );
   });
 });
