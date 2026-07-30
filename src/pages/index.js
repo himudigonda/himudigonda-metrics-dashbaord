@@ -18,9 +18,9 @@ import { fetchAllVoqora } from '../lib/voqora-api';
 
 // --- MOCK DATA (fallback only — used when the API is unreachable) ---
 const mockOverview = {
-    voqora_installations: 0,
-    supersay_legacy_installations: 0,
-    portfolio_installations: 0,
+    voqora_reported_installations: 0,
+    supersay_legacy_reported_installations: 0,
+    portfolio_reported_installations: 0,
     opted_in_email_contacts: 0,
     download_clicks_total: 0,
     voqora_active_installations_today: 0,
@@ -106,7 +106,7 @@ const Dashboard = () => {
             <Header>
                 <div>
                     <Title>Voqora Metrics</Title>
-                    <Subtitle>One source of truth: installations are anonymous app installs, launches are separate activity events, email contacts are opt-in only, and download-page clicks are not installs. Voqora and retired SuperSay remain separate. <a href="https://github.com/himudigonda/Voqora/blob/main/PRIVACY.md" target="_blank" rel="noreferrer">PRIVACY.md →</a></Subtitle>
+                    <Subtitle>One source of truth: reported installations are anonymous app installs that successfully deliver analytics, activity events are separate, email contacts are opt-in only, and release-page clicks are not installs. Voqora and the retired legacy app remain separate. <a href="https://github.com/himudigonda/Voqora/blob/main/PRIVACY.md" target="_blank" rel="noreferrer">PRIVACY.md →</a></Subtitle>
                 </div>
                 <HeaderActions>
                     <RefreshButton onClick={fetchData} disabled={loading}>{loading ? 'Refreshing…' : 'Refresh'}</RefreshButton>
@@ -120,9 +120,7 @@ const Dashboard = () => {
 
             {/* F1 — Overview cards */}
             <StatGrid>
-                <MetricCard title="Voqora installations" value={overview.voqora_installations} accentColor="$cyan" />
-                <MetricCard title="SuperSay legacy installs" value={overview.supersay_legacy_installations} accentColor="$purple" />
-                <MetricCard title="Portfolio installations" value={overview.portfolio_installations} accentColor="$orange" />
+                <MetricCard title="Reported Voqora installs" value={overview.voqora_reported_installations} accentColor="$cyan" />
                 <MetricCard title="Opt-in email contacts" value={overview.opted_in_email_contacts} accentColor="$cyan" />
                 <MetricCard title="Release-page clicks" value={overview.download_clicks_total} accentColor="$purple" />
                 <MetricCard title="Active installs today" value={overview.voqora_active_installations_today} accentColor="$purple" />

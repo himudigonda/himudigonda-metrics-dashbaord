@@ -16,7 +16,7 @@ beforeEach(() => {
 describe('Voqora metrics client', () => {
   test('loads the complete aggregate dashboard payload from the Voqora endpoint', async () => {
     const payload = {
-      overview: { voqora_installations: 5, supersay_legacy_installations: 1 },
+      overview: { voqora_reported_installations: 5, supersay_legacy_reported_installations: 1 },
       daily: { series: [] },
     };
     axios.get.mockResolvedValueOnce({ data: payload });
