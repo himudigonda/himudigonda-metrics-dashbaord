@@ -85,4 +85,12 @@ describe('Voqora metrics client', () => {
     const api = await freshClient();
     await expect(api.fetchAllVoqora()).rejects.toThrow('older schema');
   });
+
+  test('turns an API schema-mismatch response into the same clear dashboard block', async () => {
+    axios.get.mockRejectedValueOnce({
+      response: { data: { error: { code: 'metrics_schema_mismatch' } } },
+    });
+    const api = await freshClient();
+    await expect(api.fetchAllVoqora()).rejects.toThrow('older schema');
+  });
 });

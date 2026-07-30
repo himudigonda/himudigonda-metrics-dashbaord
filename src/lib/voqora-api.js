@@ -50,6 +50,15 @@ function assertMetricsContract(data) {
 }
 
 export async function fetchAllVoqora(days = 90, weeks = 12) {
-  const { data } = await axios.get(`${BASE}/metrics`, { params: { days, weeks } });
-  return assertMetricsContract(data);
+  try {
+    const { data } = await axios.get(`${BASE}/metrics`, { params: { days, weeks } });
+    return assertMetricsContract(data);
+  } catch (error) {
+    if (error?.response?.data?.error?.code === 'metrics_schema_mismatch') {
+      throw new Error(
+        'The Voqora metrics service is using an older schema. Deploy the matching website and database migration before trusting this dashboard.',
+      );
+    }
+    throw error;
+  }
 }
