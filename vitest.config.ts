@@ -11,7 +11,7 @@ export default defineConfig({
       provider: 'v8',
       include: ['src/lib/**/*.js'],
       thresholds: {
-        'src/lib/supersay-api.js': {
+        'src/lib/voqora-api.js': {
           branches: 80,
           functions: 100,
           lines: 95,

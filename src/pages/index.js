@@ -14,22 +14,27 @@ import {
     CartesianGrid,
 } from 'recharts';
 import MetricCard from '../components/MetricCard';
-import { fetchAllSupersay } from '../lib/supersay-api';
+import { fetchAllVoqora } from '../lib/voqora-api';
 
 // --- MOCK DATA (fallback only — used when the API is unreachable) ---
 const mockOverview = {
-    users_total: 0,
-    users_signed: 0,
-    dau: 0,
-    wau: 0,
-    generations_total: 0,
-    audio_seconds_total: 0,
+    voqora_installations: 0,
+    supersay_legacy_installations: 0,
+    total_installations: 0,
+    identified_voqora_users: 0,
+    voqora_dau: 0,
+    voqora_wau: 0,
+    voqora_generations_total: 0,
+    voqora_audio_seconds_total: 0,
+    migration_detected_total: 0,
+    migration_completed_total: 0,
+    legacy_app_removed_total: 0,
     sample_size_warning: true,
 };
 const mockDaily = { days: 90, series: [], sample_size_warning: true };
 const mockVoices = { voices: [], total: 0, sample_size_warning: true };
 const mockRetention = { weeks: 12, cohorts: [], sample_size_warning: true };
-const mockAudiobook = { uploads: 0, pages_total: 0, audio_seconds_total: 0, gemini_pages_cleaned: 0, completed: 0, completion_rate: 0, sample_size_warning: true };
+const mockAudiobook = { uploads: 0, pages_total: 0, audio_seconds_total: 0, gemini_pages_cleaned: 0, plays: 0, play_per_upload_rate: 0, sample_size_warning: true };
 
 const VOICE_COLORS = ['#80ffea', '#9580ff', '#ffca80', '#ff80bf', '#80ffaa', '#80b3ff', '#ff8080', '#bfff80'];
 
@@ -50,10 +55,10 @@ const Dashboard = () => {
         setLoading(true);
         setError(null);
         try {
-            const all = await fetchAllSupersay();
+            const all = await fetchAllVoqora();
             setData(all);
         } catch (e) {
-            console.error('Failed to fetch SuperSay metrics:', e);
+            console.error('Failed to fetch Voqora metrics:', e);
             setError('Could not fetch live data. Showing placeholders.');
             setData({
                 overview: mockOverview,
@@ -78,47 +83,76 @@ const Dashboard = () => {
 
     const trendData = (daily.series || []).map((d) => ({
         date: d.date,
-        Users: d.users,
-        Generations: d.generations,
-        AudioHours: Math.round((d.audio_seconds / 3600) * 10) / 10,
+        VoqoraInstalls: d.voqora_installations,
+        LegacyInstalls: d.supersay_legacy_installations,
+        VoqoraGenerations: d.voqora_generations,
+        AudioHours: Math.round((d.voqora_audio_seconds / 3600) * 10) / 10,
     }));
 
     const voiceData = (voices.voices || []).slice(0, 8).map((v) => ({
         voice: v.voice,
         generations: v.generations,
     }));
+    const migrationDetected = Number(overview.migration_detected_total || 0);
+    const migrationCompleted = Number(overview.migration_completed_total || 0);
+    const legacyRemoved = Number(overview.legacy_app_removed_total || 0);
+    const migrationCompletionRate = migrationDetected > 0
+        ? `${Math.round((migrationCompleted / migrationDetected) * 100)}%`
+        : '—';
 
     return (
         <DashboardLayout>
             <Header>
                 <div>
-                    <Title>SuperSay Metrics</Title>
-                    <Subtitle>Counts only — never your text. <a href="https://github.com/himudigonda/SuperSay/blob/main/PRIVACY.md" target="_blank" rel="noreferrer">PRIVACY.md →</a></Subtitle>
+                    <Title>Voqora Metrics</Title>
+                    <Subtitle>Anonymous installation counts only. Voqora and retired SuperSay remain separate, so portfolio totals are not claimed as deduplicated people. <a href="https://github.com/himudigonda/Voqora/blob/main/PRIVACY.md" target="_blank" rel="noreferrer">PRIVACY.md →</a></Subtitle>
                 </div>
                 <HeaderActions>
-                    <SakshiLink href="/sakshi">Sakshi Beta →</SakshiLink>
                     <RefreshButton onClick={fetchData} disabled={loading}>{loading ? 'Refreshing…' : 'Refresh'}</RefreshButton>
                 </HeaderActions>
             </Header>
 
             {error && <ErrorBanner>{error}</ErrorBanner>}
             {overview.sample_size_warning && (
-                <PreviewBanner>Preview — sample size is small. Numbers will stabilize as v1.1 adoption grows.</PreviewBanner>
+                <PreviewBanner>Preview — sample size is small. Numbers will stabilize as adoption grows.</PreviewBanner>
             )}
 
             {/* F1 — Overview cards */}
             <StatGrid>
-                <MetricCard title="Total Users" value={overview.users_total} accentColor="$cyan" />
-                <MetricCard title="Signed In" value={overview.users_signed} accentColor="$purple" />
-                <MetricCard title="DAU" value={overview.dau} accentColor="$orange" />
-                <MetricCard title="WAU" value={overview.wau} accentColor="$cyan" />
-                <MetricCard title="TTS Calls (total)" value={overview.generations_total} accentColor="$purple" />
-                <MetricCard title="Audio Generated" value={fmtHours(overview.audio_seconds_total)} accentColor="$orange" />
+                <MetricCard title="Voqora installations" value={overview.voqora_installations} accentColor="$cyan" />
+                <MetricCard title="SuperSay legacy installs" value={overview.supersay_legacy_installations} accentColor="$purple" />
+                <MetricCard title="Portfolio installations" value={overview.total_installations} accentColor="$orange" />
+                <MetricCard title="Optional email identities" value={overview.identified_voqora_users} accentColor="$cyan" />
+                <MetricCard title="Voqora DAU" value={overview.voqora_dau} accentColor="$purple" />
+                <MetricCard title="Voqora TTS calls" value={overview.voqora_generations_total} accentColor="$orange" />
             </StatGrid>
+
+            <ChartSection>
+                <ChartTitle>SuperSay → Voqora migration funnel</ChartTitle>
+                <MigrationNote>Counts describe the explicit migration flow in Voqora. They do not deduplicate people or silently remove any app.</MigrationNote>
+                <FunnelGrid css={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', '@media (max-width: 720px)': { gridTemplateColumns: 'repeat(2, 1fr)' } }}>
+                    <FunnelStat>
+                        <FunnelLabel>Legacy install detected</FunnelLabel>
+                        <FunnelValue>{migrationDetected}</FunnelValue>
+                    </FunnelStat>
+                    <FunnelStat>
+                        <FunnelLabel>Preferences imported</FunnelLabel>
+                        <FunnelValue>{migrationCompleted}</FunnelValue>
+                    </FunnelStat>
+                    <FunnelStat>
+                        <FunnelLabel>Legacy app removed</FunnelLabel>
+                        <FunnelValue>{legacyRemoved}</FunnelValue>
+                    </FunnelStat>
+                    <FunnelStat>
+                        <FunnelLabel>Detected → imported</FunnelLabel>
+                        <FunnelValue>{migrationCompletionRate}</FunnelValue>
+                    </FunnelStat>
+                </FunnelGrid>
+            </ChartSection>
 
             {/* F2 — Daily trend */}
             <ChartSection>
-                <ChartTitle>Daily Trend (last 90 days)</ChartTitle>
+                <ChartTitle>Daily Voqora and legacy migration trend (last 90 days)</ChartTitle>
                 <ResponsiveContainer width="100%" height={350}>
                     <LineChart data={trendData} margin={{ top: 5, right: 24, left: 0, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
@@ -127,8 +161,9 @@ const Dashboard = () => {
                         <YAxis yAxisId="right" orientation="right" stroke="rgba(255,255,255,0.55)" fontSize={11} />
                         <Tooltip contentStyle={{ backgroundColor: '#0f0f12', border: '1px solid rgba(255,255,255,0.1)' }} />
                         <Legend wrapperStyle={{ paddingTop: '15px' }} />
-                        <Line yAxisId="left" type="monotone" dataKey="Users" stroke="#80ffea" strokeWidth={2} dot={false} />
-                        <Line yAxisId="left" type="monotone" dataKey="Generations" stroke="#9580ff" strokeWidth={2} dot={false} />
+                        <Line yAxisId="left" type="monotone" dataKey="VoqoraInstalls" stroke="#80ffea" strokeWidth={2} dot={false} />
+                        <Line yAxisId="left" type="monotone" dataKey="LegacyInstalls" stroke="#9580ff" strokeWidth={2} dot={false} />
+                        <Line yAxisId="left" type="monotone" dataKey="VoqoraGenerations" stroke="#ff80bf" strokeWidth={2} dot={false} />
                         <Line yAxisId="right" type="monotone" dataKey="AudioHours" stroke="#ffca80" strokeWidth={2} dot={false} />
                     </LineChart>
                 </ResponsiveContainer>
@@ -175,11 +210,11 @@ const Dashboard = () => {
                         </FunnelStat>
                         <FunnelStat>
                             <FunnelLabel>Completed plays</FunnelLabel>
-                            <FunnelValue>{audiobook.completed}</FunnelValue>
+                            <FunnelValue>{audiobook.plays}</FunnelValue>
                         </FunnelStat>
                         <FunnelStat css={{ gridColumn: 'span 2' }}>
                             <FunnelLabel>Upload → Play conversion</FunnelLabel>
-                            <FunnelValue>{audiobook.completion_rate}%</FunnelValue>
+                            <FunnelValue>{audiobook.play_per_upload_rate}%</FunnelValue>
                         </FunnelStat>
                     </FunnelGrid>
                 </ChartSection>
@@ -223,7 +258,6 @@ const Dashboard = () => {
 const DashboardLayout = styled('main', { padding: '40px', minHeight: '100vh', background: '$cardBackground', color: '$primary' });
 const Header = styled('header', { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' });
 const HeaderActions = styled('div', { display: 'flex', gap: '12px', alignItems: 'center' });
-const SakshiLink = styled('a', { color: '$cyan', fontSize: '14px', textDecoration: 'none', padding: '10px 16px', border: '1px solid $cyan', borderRadius: '$borderRadius', '&:hover': { background: 'rgba(128, 255, 234, 0.1)' } });
 const Title = styled('h1', { color: '$primary', fontSize: '36px', margin: 0 });
 const Subtitle = styled('p', { color: '$secondary', margin: '6px 0 0 0', fontSize: '13px', a: { color: '$cyan' } });
 const RefreshButton = styled('button', {
@@ -246,6 +280,7 @@ const EmptyMsg = styled('p', { color: '$secondary', fontSize: '13px', textAlign:
 const LoadingContainer = styled('div', { color: '$secondary', textAlign: 'center', marginTop: '100px', fontSize: '24px' });
 const ErrorContainer = styled('div', { color: '$red', textAlign: 'center', marginTop: '100px', fontSize: '24px' });
 const FunnelGrid = styled('div', { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '14px' });
+const MigrationNote = styled('p', { color: '$secondary', fontSize: '13px', margin: '-4px 0 16px' });
 const FunnelStat = styled('div', { padding: '14px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '$borderRadius', border: '1px solid rgba(255, 255, 255, 0.05)' });
 const FunnelLabel = styled('div', { color: '$secondary', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' });
 const FunnelValue = styled('div', { color: '$primary', fontSize: '22px', fontWeight: 'bold' });
