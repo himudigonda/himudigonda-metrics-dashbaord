@@ -60,7 +60,10 @@ const Dashboard = () => {
             setData(all);
         } catch (e) {
             console.error('Failed to fetch Voqora metrics:', e);
-            setError('Could not fetch live data. Showing placeholders.');
+            const isSchemaMismatch = e instanceof Error && e.message.includes('older schema');
+            setError(isSchemaMismatch
+                ? 'The metrics service is on an older schema. No live numbers are being shown until the website and database are upgraded together.'
+                : 'Could not fetch live data. Showing placeholders.');
             setData({
                 overview: mockOverview,
                 daily: mockDaily,
