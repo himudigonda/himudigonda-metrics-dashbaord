@@ -20,10 +20,11 @@ import { fetchAllVoqora } from '../lib/voqora-api';
 const mockOverview = {
     voqora_installations: 0,
     supersay_legacy_installations: 0,
-    total_installations: 0,
-    identified_voqora_users: 0,
-    voqora_dau: 0,
-    voqora_wau: 0,
+    portfolio_installations: 0,
+    opted_in_email_contacts: 0,
+    download_clicks_total: 0,
+    voqora_active_installations_today: 0,
+    voqora_active_installations_7d: 0,
     voqora_generations_total: 0,
     voqora_audio_seconds_total: 0,
     migration_detected_total: 0,
@@ -83,8 +84,8 @@ const Dashboard = () => {
 
     const trendData = (daily.series || []).map((d) => ({
         date: d.date,
-        VoqoraInstalls: d.voqora_installations,
-        LegacyInstalls: d.supersay_legacy_installations,
+        VoqoraActiveInstallations: d.voqora_active_installations,
+        LegacyActiveInstallations: d.supersay_legacy_active_installations,
         VoqoraGenerations: d.voqora_generations,
         AudioHours: Math.round((d.voqora_audio_seconds / 3600) * 10) / 10,
     }));
@@ -105,7 +106,7 @@ const Dashboard = () => {
             <Header>
                 <div>
                     <Title>Voqora Metrics</Title>
-                    <Subtitle>Anonymous installation counts only. Voqora and retired SuperSay remain separate, so portfolio totals are not claimed as deduplicated people. <a href="https://github.com/himudigonda/Voqora/blob/main/PRIVACY.md" target="_blank" rel="noreferrer">PRIVACY.md →</a></Subtitle>
+                    <Subtitle>One source of truth: installations are anonymous app installs, launches are separate activity events, email contacts are opt-in only, and download-page clicks are not installs. Voqora and retired SuperSay remain separate. <a href="https://github.com/himudigonda/Voqora/blob/main/PRIVACY.md" target="_blank" rel="noreferrer">PRIVACY.md →</a></Subtitle>
                 </div>
                 <HeaderActions>
                     <RefreshButton onClick={fetchData} disabled={loading}>{loading ? 'Refreshing…' : 'Refresh'}</RefreshButton>
@@ -121,9 +122,10 @@ const Dashboard = () => {
             <StatGrid>
                 <MetricCard title="Voqora installations" value={overview.voqora_installations} accentColor="$cyan" />
                 <MetricCard title="SuperSay legacy installs" value={overview.supersay_legacy_installations} accentColor="$purple" />
-                <MetricCard title="Portfolio installations" value={overview.total_installations} accentColor="$orange" />
-                <MetricCard title="Optional email identities" value={overview.identified_voqora_users} accentColor="$cyan" />
-                <MetricCard title="Voqora DAU" value={overview.voqora_dau} accentColor="$purple" />
+                <MetricCard title="Portfolio installations" value={overview.portfolio_installations} accentColor="$orange" />
+                <MetricCard title="Opt-in email contacts" value={overview.opted_in_email_contacts} accentColor="$cyan" />
+                <MetricCard title="Release-page clicks" value={overview.download_clicks_total} accentColor="$purple" />
+                <MetricCard title="Active installs today" value={overview.voqora_active_installations_today} accentColor="$purple" />
                 <MetricCard title="Voqora TTS calls" value={overview.voqora_generations_total} accentColor="$orange" />
             </StatGrid>
 
@@ -152,7 +154,7 @@ const Dashboard = () => {
 
             {/* F2 — Daily trend */}
             <ChartSection>
-                <ChartTitle>Daily Voqora and legacy migration trend (last 90 days)</ChartTitle>
+                <ChartTitle>Daily active installations and usage (last 90 days)</ChartTitle>
                 <ResponsiveContainer width="100%" height={350}>
                     <LineChart data={trendData} margin={{ top: 5, right: 24, left: 0, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
@@ -161,8 +163,8 @@ const Dashboard = () => {
                         <YAxis yAxisId="right" orientation="right" stroke="rgba(255,255,255,0.55)" fontSize={11} />
                         <Tooltip contentStyle={{ backgroundColor: '#0f0f12', border: '1px solid rgba(255,255,255,0.1)' }} />
                         <Legend wrapperStyle={{ paddingTop: '15px' }} />
-                        <Line yAxisId="left" type="monotone" dataKey="VoqoraInstalls" stroke="#80ffea" strokeWidth={2} dot={false} />
-                        <Line yAxisId="left" type="monotone" dataKey="LegacyInstalls" stroke="#9580ff" strokeWidth={2} dot={false} />
+                        <Line yAxisId="left" type="monotone" dataKey="VoqoraActiveInstallations" name="Voqora active installs" stroke="#80ffea" strokeWidth={2} dot={false} />
+                        <Line yAxisId="left" type="monotone" dataKey="LegacyActiveInstallations" name="Legacy active installs" stroke="#9580ff" strokeWidth={2} dot={false} />
                         <Line yAxisId="left" type="monotone" dataKey="VoqoraGenerations" stroke="#ff80bf" strokeWidth={2} dot={false} />
                         <Line yAxisId="right" type="monotone" dataKey="AudioHours" stroke="#ffca80" strokeWidth={2} dot={false} />
                     </LineChart>
