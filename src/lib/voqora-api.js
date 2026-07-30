@@ -5,6 +5,8 @@ import axios from 'axios';
 const BASE = process.env.NEXT_PUBLIC_VOQORA_API_BASE
   || 'https://himudigonda.me/api/voqora';
 
+const EXPECTED_METRICS_CONTRACT_VERSION = '2026-07-30.1';
+
 const requiredOverviewFields = [
   'voqora_reported_installations',
   'supersay_legacy_reported_installations',
@@ -23,6 +25,12 @@ const requiredOverviewFields = [
 function assertMetricsContract(data) {
   if (!data || typeof data !== 'object' || !data.overview || typeof data.overview !== 'object') {
     throw new Error('The Voqora metrics service returned an invalid response.');
+  }
+
+  if (data.metrics_contract_version !== EXPECTED_METRICS_CONTRACT_VERSION) {
+    throw new Error(
+      'The Voqora metrics service is using an older schema. Deploy the matching website and database migration before trusting this dashboard.',
+    );
   }
 
   const missing = requiredOverviewFields.filter((field) => !(field in data.overview));

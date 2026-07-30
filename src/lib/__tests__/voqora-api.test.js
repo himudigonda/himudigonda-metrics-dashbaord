@@ -16,6 +16,7 @@ beforeEach(() => {
 describe('Voqora metrics client', () => {
   test('loads the complete aggregate dashboard payload from the Voqora endpoint', async () => {
     const payload = {
+      metrics_contract_version: '2026-07-30.1',
       overview: {
         voqora_reported_installations: 5,
         supersay_legacy_reported_installations: 1,
@@ -44,6 +45,7 @@ describe('Voqora metrics client', () => {
   test('honours an explicit Voqora API base and requested windows', async () => {
     process.env.NEXT_PUBLIC_VOQORA_API_BASE = 'http://localhost:3000/api/voqora';
     axios.get.mockResolvedValueOnce({ data: {
+      metrics_contract_version: '2026-07-30.1',
       overview: {
         voqora_reported_installations: 0,
         supersay_legacy_reported_installations: 0,
@@ -70,6 +72,15 @@ describe('Voqora metrics client', () => {
   test('fails clearly instead of displaying incompatible live metrics as zeros', async () => {
     axios.get.mockResolvedValueOnce({ data: {
       overview: { voqora_installations: 4 },
+    } });
+    const api = await freshClient();
+    await expect(api.fetchAllVoqora()).rejects.toThrow('older schema');
+  });
+
+  test('fails when the response advertises a different metrics contract', async () => {
+    axios.get.mockResolvedValueOnce({ data: {
+      metrics_contract_version: '2026-07-29.1',
+      overview: {},
     } });
     const api = await freshClient();
     await expect(api.fetchAllVoqora()).rejects.toThrow('older schema');
