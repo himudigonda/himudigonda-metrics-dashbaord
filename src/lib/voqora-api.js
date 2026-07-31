@@ -5,21 +5,16 @@ import axios from 'axios';
 const BASE = process.env.NEXT_PUBLIC_VOQORA_API_BASE
   || 'https://himudigonda.me/api/voqora';
 
-const EXPECTED_METRICS_CONTRACT_VERSION = '2026-07-30.1';
+const EXPECTED_METRICS_CONTRACT_VERSION = '2026-07-30.2';
 
 const requiredOverviewFields = [
   'voqora_reported_installations',
-  'supersay_legacy_reported_installations',
-  'portfolio_reported_installations',
   'opted_in_email_contacts',
   'download_clicks_total',
   'voqora_active_installations_today',
   'voqora_active_installations_7d',
   'voqora_generations_total',
   'voqora_audio_seconds_total',
-  'migration_detected_total',
-  'migration_completed_total',
-  'legacy_app_removed_total',
 ];
 
 function assertMetricsContract(data) {

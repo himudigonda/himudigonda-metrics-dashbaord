@@ -19,17 +19,12 @@ import { fetchAllVoqora } from '../lib/voqora-api';
 // --- MOCK DATA (fallback only — used when the API is unreachable) ---
 const mockOverview = {
     voqora_reported_installations: 0,
-    supersay_legacy_reported_installations: 0,
-    portfolio_reported_installations: 0,
     opted_in_email_contacts: 0,
     download_clicks_total: 0,
     voqora_active_installations_today: 0,
     voqora_active_installations_7d: 0,
     voqora_generations_total: 0,
     voqora_audio_seconds_total: 0,
-    migration_detected_total: 0,
-    migration_completed_total: 0,
-    legacy_app_removed_total: 0,
     sample_size_warning: true,
 };
 const mockDaily = { days: 90, series: [], sample_size_warning: true };
@@ -88,7 +83,6 @@ const Dashboard = () => {
     const trendData = (daily.series || []).map((d) => ({
         date: d.date,
         VoqoraActiveInstallations: d.voqora_active_installations,
-        LegacyActiveInstallations: d.supersay_legacy_active_installations,
         VoqoraGenerations: d.voqora_generations,
         AudioHours: Math.round((d.voqora_audio_seconds / 3600) * 10) / 10,
     }));
@@ -97,19 +91,13 @@ const Dashboard = () => {
         voice: v.voice,
         generations: v.generations,
     }));
-    const migrationDetected = Number(overview.migration_detected_total || 0);
-    const migrationCompleted = Number(overview.migration_completed_total || 0);
-    const legacyRemoved = Number(overview.legacy_app_removed_total || 0);
-    const migrationCompletionRate = migrationDetected > 0
-        ? `${Math.round((migrationCompleted / migrationDetected) * 100)}%`
-        : '—';
 
     return (
         <DashboardLayout>
             <Header>
                 <div>
                     <Title>Voqora Metrics</Title>
-                    <Subtitle>One source of truth: reported installations are anonymous app installs that successfully deliver analytics, activity events are separate, email contacts are opt-in only, and release-page clicks are not installs. Voqora and the retired legacy app remain separate. <a href="https://github.com/himudigonda/Voqora/blob/main/PRIVACY.md" target="_blank" rel="noreferrer">PRIVACY.md →</a></Subtitle>
+                    <Subtitle>Reported installations are anonymous app installs that successfully deliver analytics. Activity events are separate, email contacts are opt-in, and release-page clicks are not installs. <a href="https://github.com/himudigonda/Voqora/blob/main/PRIVACY.md" target="_blank" rel="noreferrer">PRIVACY.md →</a></Subtitle>
                 </div>
                 <HeaderActions>
                     <RefreshButton onClick={fetchData} disabled={loading}>{loading ? 'Refreshing…' : 'Refresh'}</RefreshButton>
@@ -130,29 +118,6 @@ const Dashboard = () => {
                 <MetricCard title="Voqora TTS calls" value={overview.voqora_generations_total} accentColor="$orange" />
             </StatGrid>
 
-            <ChartSection>
-                <ChartTitle>SuperSay → Voqora migration funnel</ChartTitle>
-                <MigrationNote>Counts describe the explicit migration flow in Voqora. They do not deduplicate people or silently remove any app.</MigrationNote>
-                <FunnelGrid css={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', '@media (max-width: 720px)': { gridTemplateColumns: 'repeat(2, 1fr)' } }}>
-                    <FunnelStat>
-                        <FunnelLabel>Legacy install detected</FunnelLabel>
-                        <FunnelValue>{migrationDetected}</FunnelValue>
-                    </FunnelStat>
-                    <FunnelStat>
-                        <FunnelLabel>Preferences imported</FunnelLabel>
-                        <FunnelValue>{migrationCompleted}</FunnelValue>
-                    </FunnelStat>
-                    <FunnelStat>
-                        <FunnelLabel>Legacy app removed</FunnelLabel>
-                        <FunnelValue>{legacyRemoved}</FunnelValue>
-                    </FunnelStat>
-                    <FunnelStat>
-                        <FunnelLabel>Detected → imported</FunnelLabel>
-                        <FunnelValue>{migrationCompletionRate}</FunnelValue>
-                    </FunnelStat>
-                </FunnelGrid>
-            </ChartSection>
-
             {/* F2 — Daily trend */}
             <ChartSection>
                 <ChartTitle>Daily active installations and usage (last 90 days)</ChartTitle>
@@ -165,7 +130,6 @@ const Dashboard = () => {
                         <Tooltip contentStyle={{ backgroundColor: '#0f0f12', border: '1px solid rgba(255,255,255,0.1)' }} />
                         <Legend wrapperStyle={{ paddingTop: '15px' }} />
                         <Line yAxisId="left" type="monotone" dataKey="VoqoraActiveInstallations" name="Voqora active installs" stroke="#80ffea" strokeWidth={2} dot={false} />
-                        <Line yAxisId="left" type="monotone" dataKey="LegacyActiveInstallations" name="Legacy active installs" stroke="#9580ff" strokeWidth={2} dot={false} />
                         <Line yAxisId="left" type="monotone" dataKey="VoqoraGenerations" stroke="#ff80bf" strokeWidth={2} dot={false} />
                         <Line yAxisId="right" type="monotone" dataKey="AudioHours" stroke="#ffca80" strokeWidth={2} dot={false} />
                     </LineChart>
