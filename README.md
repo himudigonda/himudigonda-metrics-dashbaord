@@ -20,6 +20,16 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Metrics token
+
+The dashboard proxies `https://himudigonda.me/api/voqora/metrics`, which refuses requests without a bearer token. Set `VOQORA_METRICS_TOKEN` in `.env.local` (the same value as the website's server environment variable):
+
+```bash
+echo 'VOQORA_METRICS_TOKEN=<your token>' >> .env.local
+```
+
+The token is read server-side by `/api/metrics` and is never sent to the browser. `npm run dev` and `npm run start` bind to `127.0.0.1`, and `/api/metrics` answers 403 to any non-loopback caller. Set `DASHBOARD_ALLOW_REMOTE=1` only if you deliberately need to reach it from another machine.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
